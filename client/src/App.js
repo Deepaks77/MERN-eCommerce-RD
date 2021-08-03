@@ -42,7 +42,7 @@ const App = () => {
 								email: res.data.email,
 								token: idTokenResult.token,
 								role: res.data.role,
-								_id: res.data.id,
+								_id: res.data._id,
 							},
 						});
 					})

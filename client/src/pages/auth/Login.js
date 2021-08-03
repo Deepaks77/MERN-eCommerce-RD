@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { createOrUpdateUser } from "../../functions/auth";
 
-const Login = ({ history }) => {
+const Login = ({ history, location }) => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -15,23 +15,38 @@ const Login = ({ history }) => {
 	let rUserState = useSelector((state) => state.user);
 
 	useEffect(() => {
-		if (rUserState && rUserState.token) history.push("/");
+		let intended = location.state;
+		if (intended) return;
+		else {
+			if (rUserState && rUserState.token) history.push("/");
+		}
+
 		// eslint-disable-next-line
 	}, [rUserState]);
 
 	const roleBasedRedirect = (res) => {
-		console.log("inside it");
-		if (res.data.role === "admin") {
-			history.push("/admin/dashboard");
+		//check if intended
+		let intended = location.state;
+		console.log("intended", location);
+		if (intended) {
+			console.log("intended yes", intended);
+			history.push(intended.from);
 		} else {
-			history.push("/user/history");
+			if (res.data.role === "admin") {
+				history.push("/admin/dashboard");
+			} else {
+				history.push("/user/history");
+			}
 		}
 	};
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true);
 		try {
-			const result = await auth.signInWithEmailAndPassword(email, password);
+			const result = await auth.signInWithEmailAndPassword(
+				email,
+				password
+			);
 			const { user } = result;
 			const idTokenResult = await user.getIdTokenResult();
 			createOrUpdateUser(idTokenResult.token)
@@ -57,8 +72,7 @@ const Login = ({ history }) => {
 	};
 
 	const googleLogin = async () => {
-		auth
-			.signInWithPopup(googleAuthProvider)
+		auth.signInWithPopup(googleAuthProvider)
 			.then(async (result) => {
 				const { user } = result;
 				const idTokenResult = await user.getIdTokenResult();
@@ -147,7 +161,10 @@ const Login = ({ history }) => {
 					>
 						Login with Google
 					</Button>
-					<Link to="/forgot/password" className="float-right text-danger">
+					<Link
+						to="/forgot/password"
+						className="float-right text-danger"
+					>
 						Forgot Password
 					</Link>
 				</div>
